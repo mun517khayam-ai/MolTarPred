@@ -71,14 +71,7 @@ webapp/                   FastAPI + React application serving MolTarPred v2.2
 └── frontend/             Vite + React single-page app
 ```
 
-The two ChemBERTa backbones were originally maintained as separate directories whose
-files were byte-identical apart from the model name. They are consolidated here into one
-pipeline selected by `--model`; each backbone writes to its own `artifacts_*/` and
-`results_*/` so the cached embeddings and similarity matrices stay keyed to their model.
-
-This repository holds only what is needed to run the pipeline. Figures, the
-plotting/statistics notebook, and the per-query result files are not included — the
-results are reported in the dissertation.
+This repository holds only what is needed to run the pipeline.
 
 ---
 
@@ -93,9 +86,6 @@ They are declared as module-level constants (`CODE`, `DB_CSV`, `QUERY`, `V2_DB`,
 in the first ~30 lines of each file, so the edit is mechanical. The database connection
 string is likewise hardcoded as `postgresql://macbook@localhost:5432/chembl_36` in the two
 filter scripts.
-
-This is a known limitation rather than an oversight, and it is the main thing to fix before
-anyone else runs the pipeline.
 
 ---
 
@@ -205,33 +195,6 @@ Roughly 14 GB of intermediate data is excluded and regenerable from the scripts 
 the ChEMBL 36 dump, the filtered and grouped databases (100 MB – 1.8 GB each), the
 transformer embeddings (0.3 – 2.6 GB each), the cached similarity matrices, and the web
 app's fingerprint index.
-
-Superseded experiments are also excluded — the loose-database ChemBERTa runs, the
-corrected-tokenizer sibling pipeline, and an earlier standalone embedding library. Only
-the code that produced the reported results is here.
-
----
-
-## Notes on the data
-
-Three defects in the reference data pipeline were found and corrected before the reported
-results were generated. They are worth knowing about if you compare numbers against
-earlier MolTarPred publications:
-
-1. **`CHEMBL612545` ("Unchecked")** is ChEMBL's placeholder for assays whose target was
-   never curated — no protein components, ~2.3 M unrelated activities. It was being treated
-   as a protein target, and was ground truth for 50 of the 100 benchmark drugs. Now excluded
-   via `target_type != 'UNCHECKED'`.
-2. **Deduplication was keyed on `compound_records.compound_key`** — the paper-local label an
-   author gives a compound ("1", "5a"), shared by 47,877 distinct molecules. This collapsed
-   unrelated compounds and destroyed ~497,000 real molecule–target pairs (37% of the
-   interaction data). Now keyed on `molecule_chembl_id`.
-3. **The SQL had no `ORDER BY`**, so deduplication kept an arbitrary row and consecutive runs
-   disagreed on ~23,000 pairs. Now ordered by `activities.activity_id`; runs are
-   byte-identical.
-
-All three affected both database variants identically, and correcting them preserved every
-method ranking.
 
 ---
 
