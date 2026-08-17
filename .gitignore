@@ -31,8 +31,14 @@ webapp/backend/data/
 # ----------------------------------------------------------------------------
 # Explicitly keep the small artefacts that ARE part of the record
 # ----------------------------------------------------------------------------
-!computational/02_benchmark/query_master_FDA.csv
 !computational/02_benchmark/query_master_FDA_strictGT.csv
+
+# Regenerable benchmark intermediates: query_fda_approved.py writes the FDA list,
+# build_master_query.py writes the loose-GT master file that the strict-GT builder
+# consumes. Only the strict-GT benchmark above is tracked.
+computational/02_benchmark/FDA_data_initial.csv
+computational/02_benchmark/Query_FDA.csv
+computational/02_benchmark/query_master_FDA.csv
 
 # Pipeline outputs (predictions, per-query metrics, summaries) stay local;
 # the reported results live in the dissertation.

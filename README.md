@@ -48,11 +48,14 @@ computational/
 │   ├── v2.2_chembl_36_filter.py     adds relation '=', binding assays only, >0 nM
 │   └── v2.2_chembl_36_database.py
 ├── 02_benchmark/         the frozen, version-independent benchmark
-│   ├── build_master_query.py           intersection pool -> 100 drugs (seed 42)
-│   ├── build_master_query_strictGT.py  strict ground-truth answer key
-│   ├── exclude_queries_from_db.py      masks query ligands out of a database
-│   ├── query_master_FDA.csv            100 molecules + loose ground truth
-│   └── query_master_FDA_strictGT.csv   100 molecules + strict ground truth  <- the benchmark
+│   ├── query_fda_approved.py           FDA-approved drug list from ChEMBL (first_approval)
+│   ├── build_master_query.py           SELECTS the 100 molecules: intersection pool,
+│   │                                   parity constraints, sampled once at seed 42
+│   ├── build_master_query_strictGT.py  re-derives the ANSWER KEY under the strict filter,
+│   │                                   leaving the same 100 molecules untouched
+│   ├── exclude_queries_from_db.py      masks the query ligands out of a database
+│   └── query_master_FDA_strictGT.csv   the benchmark used throughout: 100 molecules
+│                                       + strict ground truth
 └── 03_prediction/
     ├── morgan/           Morgan/Tanimoto k-NN for v2.1 and v2.2 (self-contained;
     │                     each script predicts and validates in one pass)
@@ -122,11 +125,14 @@ python computational/01_database/v2.1_chembl_36_database.py
 python computational/01_database/v2.2_chembl_36_filter.py
 python computational/01_database/v2.2_chembl_36_database.py
 
-# 2. Mask the 100 benchmark ligands out of each reference database
-python computational/02_benchmark/exclude_queries_from_db.py --db <grouped_db.csv>
+# 2. Build the benchmark. The two builders are sequential, not alternatives:
+#    the first chooses the 100 molecules, the second re-derives their answer key.
+python computational/02_benchmark/query_fda_approved.py          # FDA drug list
+python computational/02_benchmark/build_master_query.py          # -> query_master_FDA.csv
+python computational/02_benchmark/build_master_query_strictGT.py # -> ..._strictGT.csv
 
-# 3. Derive the strict ground-truth answer key for the frozen query set
-python computational/02_benchmark/build_master_query_strictGT.py
+# 3. Mask the 100 benchmark ligands out of each reference database
+python computational/02_benchmark/exclude_queries_from_db.py --db <grouped_db.csv>
 
 # 4. Morgan/Tanimoto predictions + validation
 python computational/03_prediction/morgan/run_master_v2_strictGT.py
@@ -142,6 +148,20 @@ cd computational/03_prediction/chemberta
 Each run writes the predictions (`*-Top10*.csv`), per-query metrics (`*_per.csv`) and
 summary means (`Validation_*_ave.csv`) into `results_base/` or `results_mtr/`. The reported
 values are in the dissertation.
+
+> **The two benchmark builders are a pipeline, not a choice.** `build_master_query.py` does
+> the molecule selection — it assembles the pool of FDA-approved drugs present in *both*
+> databases, applies the parity constraints (RDKit-parseable, SMILES ≤ 350 characters so
+> ChemBERTa does not truncate), and samples 100 once at `random_state=42`. It writes
+> `query_master_FDA.csv`. `build_master_query_strictGT.py` then reads that file, keeps the
+> molecules and SMILES exactly as they are, and replaces only the target column with the
+> answer key derived from the strict filter. So the second script cannot run before the
+> first, and `query_master_FDA.csv` is a required intermediate — it is gitignored here
+> because it is regenerable, not because it is unused.
+>
+> This two-stage split is deliberate: the molecules are frozen independently of any
+> version's database, and the answer key is derived separately, so changing the
+> ground-truth definition cannot change which molecules are being evaluated.
 
 > **Cache trap.** `fusion_MolTarPred.py` reuses `artifacts/cb_sim.npy` and
 > `artifacts/tan_sim.npy` **without validating them**. They are `[n_query x n_db]` matrices
