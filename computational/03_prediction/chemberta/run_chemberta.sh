@@ -38,11 +38,11 @@ python3 ChemBERTa_MolTarPred.py --artdir "$ART" --whiten-dim 64 \
 
 echo "== [3/4] fusion with Morgan/Tanimoto =="
 for k in 10 30 60; do
-  python3 fusion_MolTarPred.py --method rrf --rrf-k "$k" \
+  python3 fusion_MolTarPred.py --method rrf --rrf-k "$k" --artdir "$ART" \
           --out "$OUT/Fusion-Top10_rrf${k}.csv"
 done
 for a in 0.0 0.1 0.2 0.3 0.5 0.7; do
-  python3 fusion_MolTarPred.py --method score --alpha "$a" \
+  python3 fusion_MolTarPred.py --method score --alpha "$a" --artdir "$ART" \
           --out "$OUT/Fusion-Top10_score${a}.csv"
 done
 
