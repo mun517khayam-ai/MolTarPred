@@ -1,0 +1,38 @@
+# MolTarPred — computational pipeline dependencies
+# Python 3.11.0. Versions are those used to produce the reported results.
+#
+#   conda create -n moltarpred python=3.11
+#   conda activate moltarpred
+#   pip install -r requirements.txt
+#
+# Note: RDKit installs cleanly via pip on macOS/Linux for recent versions; if it
+# fails on your platform use `conda install -c conda-forge rdkit=2025.09`.
+
+# --- cheminformatics -------------------------------------------------------
+rdkit==2025.9.2
+
+# --- numerics and data -----------------------------------------------------
+numpy==1.26.4
+pandas==2.3.3
+scipy==1.16.3                 # paired Wilcoxon signed-rank tests
+pyarrow==22.0.0               # parquet metadata alongside the embeddings
+
+# --- database access -------------------------------------------------------
+SQLAlchemy==2.0.44
+psycopg2-binary==2.9.12       # PostgreSQL driver for the local ChEMBL 36 dump
+
+# --- transformers (embedding pipelines) ------------------------------------
+torch==2.9.1                  # Apple-Silicon MPS used for embedding
+transformers==5.9.0
+
+# --- figures and notebooks -------------------------------------------------
+matplotlib==3.10.8
+notebook==7.4.7
+ipykernel==7.1.0
+
+# --- web application backend ----------------------------------------------
+# Also listed in webapp/backend/requirements.txt so the server can be
+# installed independently of the analysis pipeline.
+fastapi==0.139.0
+uvicorn[standard]==0.51.0
+pydantic==2.13.4

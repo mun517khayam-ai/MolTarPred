@@ -1,0 +1,58 @@
+# ============================================================================
+# Data and generated artefacts.
+#
+# The pipeline produces ~14 GB of intermediate data that is deliberately NOT
+# tracked: the ChEMBL dump, the grouped databases, transformer embeddings and
+# the cached similarity matrices. All of it is regenerable from the scripts in
+# computational/ -- see the README for the order to run them in.
+# ============================================================================
+
+# ChEMBL source data
+*.dmp
+chembl_*_postgresql*
+chembl_*/
+
+# Grouped databases and filter exports (100 MB - 1.8 GB each)
+*_filter.csv
+*_database.csv
+*_database_masked.csv
+Chembl_36_all.csv
+pipeline_data*.csv
+
+# Transformer embeddings and cached similarity matrices (0.3 - 2.6 GB each)
+artifacts/
+*.npy
+*.parquet
+
+# Web app search index (~150 MB on disk, 0.78 GB resident)
+webapp/backend/data/
+*.pkl
+
+# ----------------------------------------------------------------------------
+# Explicitly keep the small artefacts that ARE part of the record
+# ----------------------------------------------------------------------------
+!computational/02_benchmark/query_master_FDA.csv
+!computational/02_benchmark/query_master_FDA_strictGT.csv
+
+# Pipeline outputs (predictions, per-query metrics, summaries) stay local;
+# the reported results live in the dissertation.
+computational/03_prediction/**/results_*/
+
+
+# ----------------------------------------------------------------------------
+# Environments, caches, editors, OS
+# ----------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.venv/
+venv/
+env/
+
+node_modules/
+dist/
+*.log
+
+.idea/
+.vscode/
+.DS_Store
